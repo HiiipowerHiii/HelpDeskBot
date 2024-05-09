@@ -3,10 +3,12 @@ from flask import Flask, request, jsonify
 from functools import wraps
 import jwt
 import logging
+from datetime import datetime
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a',
+                    format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 SECRET_KEY = os.getenv("JWT_SECRET", "your_default_secret")
@@ -18,6 +20,7 @@ def authenticate(func):
         
         if not token:
             logger.warning("Token is missing!")
+            unauthorized_access_record("Missing Token")
             return jsonify({'message': 'Token is missing!'}), 403
         
         try:
@@ -25,11 +28,16 @@ def authenticate(func):
             logger.info("Token has been successfully verified.")
         except:
             logger.warning("Token is invalid!")
+            unauthorized_access_record("Invalid Token")
             return jsonify({'message': 'Token is invalid!'}), 403
             
         return func(*args, **kwargs)
-    
+
     return decorated
+
+def unauthorized_access_record(issue):
+    with open('unauthorized_access.log', 'a') as file:
+        file.write(f"{datetime.now()} - Unauthorized access attempt detected: {issue}\n")
 
 @app.route('/secure-endpoint')
 @authenticate
