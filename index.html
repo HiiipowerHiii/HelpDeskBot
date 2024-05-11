@@ -10,10 +10,37 @@
     <script defer src="%REACT_APP_URL%/static/js/bundle.js"></script>
     <script defer src="%REACT_APP_URL%/static/js/0.chunk.js"></script>
     <script defer src="%REACT_APP_URL%/static/js/main.chunk.js"></script>
+    <style>
+      :root {
+          --background-color: #ffffff;
+          --text-color: #000000;
+      }
+      [data-theme="dark"] {
+          --background-color: #363537;
+          --text-color: #FAFAFA;
+      }
+      body {
+          background-color: var(--background-color);
+          color: var(--text-color);
+          transition: background-color 0.3s, color 0.3s;
+      }
+  </style>
 </head>
 <body>
     <div id="chat-app"></div>
+    <label for="theme-toggle">Dark Mode Toggle</label>
+    <input type="checkbox" id="theme-toggle"/>
     <script>
+        const toggle = document.getElementById('theme-toggle');
+        toggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        });
+
         window.env = {
             REACT_APP_API_URL: "%REACT_APP_API_URL%"
         };
