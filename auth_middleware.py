@@ -7,9 +7,12 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a',
-                    format='%(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+def setup_logging():
+    logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a',
+                        format='%(name)s - %(levelname)s - %(message)s')
+    return logging.getLogger(__name__)
+
+logger = setup_logging()
 
 SECRET_KEY = os.getenv("JWT_SECRET", "your_default_secret")
 
@@ -26,8 +29,8 @@ def authenticate(func):
         try:
             jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             logger.info("Token has been successfully verified.")
-        except:
-            logger.warning("Token is invalid!")
+        except Exception as e:
+            logger.warning("Token is invalid! Detail: {}".format(str(e)))
             unauthorized_access_record("Invalid Token")
             return jsonify({'message': 'Token is invalid!'}), 403
             
@@ -52,7 +55,10 @@ def generate_token():
 
 @app.route('/')
 def home():
-    return jsonify({'token': generate_token().decode('utf-8') if isinstance(generate_token(), bytes) else generate_token()})
+    generated_token = generate_token()
+    # Convert token to string if it's a bytes object, else return as-is
+    token_str = generated_token.decode('utf-8') if isinstance(generated_token, bytes) else generated_token
+    return jsonify({'token': token_str})
 
 if __name__ == '__main__':
     app.run(debug=True)
