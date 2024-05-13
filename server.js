@@ -9,6 +9,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const slackBotClient = new WebClient(process.env.SLACK_BOT_TOKEN);
 
+const responseCache = new Map();
+
 const postMessageToSlack = async (channelId, messageText) => {
     try {
         await slackBotClient.chat.postMessage({
@@ -22,7 +24,12 @@ const postMessageToSlack = async (channelId, messageText) => {
 };
 
 const generateResponseFromMessage = (messageText) => {
-    return `Received your message: ${messageText}`;
+    if (responseCache.has(messageText)) {
+        return responseCache.get(messageText);
+    }
+    const response = `Received your message: ${messageText}`;
+    responseCache.set(messageText, response);
+    return response;
 };
 
 app.post('/message/slack', async (req, res) => {
