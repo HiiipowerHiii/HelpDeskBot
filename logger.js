@@ -4,8 +4,13 @@ const winston = require('winston');
 require('dotenv').config();
 
 const logDir = 'logs';
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir);
+
+try {
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir);
+  }
+} catch (error) {
+  console.error("Failed to create log directory", error);
 }
 
 const defaultLogLevel = 'info';
@@ -19,22 +24,33 @@ const customFormat = winston.format.combine(
   winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
 );
 
+let transportsArray = [];
+try {
+  transportsArray = [
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+    new winston.transports.File({ filename: path.join(logDir, logFilename) })
+  ];
+} catch (error) {
+  console.error("Failed to initialize log file transport", error);
+}
+
 const logger = winston.createLogger({
   level: envLoglevel,
   format: customFormat,
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.simple(),
-    }), 
-    new winston.transports.File({ filename: path.join(logDir, logFilename) })
-  ]
+  transports: transportsArray
 });
 
 function logMessage(level, message) {
-  logger.log({
-    level,
-    message
-  });
+  try {
+    logger.log({
+      level,
+      message
+    });
+  } catch (error) {
+    console.error("Logging failed", error.message);
+  }
 }
 
 module.exports = {
