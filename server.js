@@ -1,15 +1,12 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const dotenv = require('dotenv').config();
 const { WebClient } = require('@slack/web-api');
 
 const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const slackBotClient = new WebClient(process.env.SLACK_BOT_TOKEN);
-
-const responseCache = new Map();
 
 const postMessageToSlack = async (channelId, messageText) => {
     try {
@@ -19,18 +16,11 @@ const postMessageToSlack = async (channelId, messageText) => {
         });
     } catch (error) {
         console.error('Error posting message to Slack: ', error);
-        throw error; 
+        throw error;
     }
 };
 
-const generateResponseFromMessage = (messageText) => {
-    if (responseCache.has(messageText)) {
-        return responseCache.get(messageText);
-    }
-    const response = `Received your message: ${messageText}`;
-    responseCache.set(messageText, response);
-    return response;
-};
+const generateResponseFromMessage = (messageText) => `Received your message: ${messageText}`;
 
 app.post('/message/slack', async (req, res) => {
     try {
