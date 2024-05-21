@@ -2,61 +2,61 @@ import React, { useState, useEffect } from 'react';
 import './ChatInterface.css';
 
 const ChatInterface = () => {
-  const [userInput, setUserInput] = useState('');
-  const [chatLog, setChatLog] = useState([]);
-  const [attachment, setAttachment] = useState(null);
+  const [messageInput, setMessageInput] = useState('');
+  const [conversationHistory, setConversationHistory] = useState([]);
+  const [fileAttachment, setFileAttachment] = useState(null);
 
-  const handleInputChange = (event) => {
-    setUserInput(event.target.value);
+  const handleTextChange = (event) => {
+    setMessageInput(event.target.value);
   };
 
-  const handleAttachmentChange = (event) => {
+  const handleFileChange = (event) => {
     if (event.target.files[0]) {
-      setAttachment(event.target.files[0]);
+      setFileAttachment(event.target.files[0]);
     }
   };
 
-  const sendMessage = () => {
-    if (!userInput.trim() && !attachment) return;
-    const newMessage = { type: 'user', content: userInput, attachment: attachment };
-    setChatLog([...chatLog, newMessage]);
-    setUserInput('');
-    setAttachment(null);
+  const submitMessage = () => {
+    if (!messageInput.trim() && !fileAttachment) return;
+    const newUserMessage = { type: 'user', content: messageInput, attachment: fileAttachment };
+    setConversationHistory([...conversationHistory, newUserMessage]);
+    setMessageInput('');
+    setFileAttachment(null);
   };
 
   useEffect(() => {
-    if (chatLog.length && chatLog[chatLog.length - 1].type === 'user') {
+    if (conversationHistory.length && conversationHistory[conversationHistory.length - 1].type === 'user') {
       setTimeout(() => {
-        const botMessage = { type: 'bot', content: 'Thanks for your message. We will reply shortly.', attachment: null };
-        setChatLog([...chatLog, botMessage]);
+        const autoReplyFromBot = { type: 'bot', content: 'Thanks for your message. We will reply shortly.', attachment: null };
+        setConversationHistory([...conversationHistory, autoReplyFromBot]);
       }, 1000);
     }
-  }, [chatLog]);
+  }, [conversationHistory]);
 
-  const renderChatLog = () => chatLog.map((message, index) => (
-    <div key={index} className={`message ${message.type}`}>
-      <div className="message-content">{message.content}</div>
-      {message.attachment && <a href={URL.createObjectURL(message.attachment)} download>Download attachment</a>}
+  const displayMessages = () => conversationHistory.map((msg, index) => (
+    <div key={index} className={`message ${msg.type}`}>
+      <div className="message-content">{msg.content}</div>
+      {msg.attachment && <a href={URL.createObjectURL(msg.attachment)} download>Download attachment</a>}
     </div>
   ));
 
   return (
     <div className="chat-interface">
       <div className="chat-window">
-        {renderChatLog()}
+        {displayMessages()}
       </div>
       <div className="input-area">
         <input 
           type="text" 
           placeholder="Type a message..." 
-          value={userInput} 
-          onChange={handleInputChange}
+          value={messageInput} 
+          onChange={handleTextChange}
         />
         <input 
           type="file" 
-          onChange={handleAttachmentChange}
+          onChange={handleFileChange}
         />
-        <button onClick={sendMessage}>Send</button>
+        <button onClick={submitMessage}>Send</button>
       </div>
     </div>
   );
